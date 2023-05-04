@@ -942,8 +942,10 @@ impl MicrosoftAzureBuilder {
     /// Configure a connection to container with given name on Microsoft Azure
     /// Blob store.
     pub fn build(mut self) -> Result<MicrosoftAzure> {
-        if let Some(url) = self.url.take() {
-            self.parse_url(&url)?;
+        if !self.allow_custom_domain {
+            if let Some(url) = self.url.take() {
+                self.parse_url(&url)?;
+            }
         }
 
         let container = self.container_name.ok_or(Error::MissingContainerName {})?;
