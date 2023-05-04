@@ -787,10 +787,10 @@ impl MicrosoftAzureBuilder {
                 _ => return Err(UrlNotRecognisedSnafu { url }.build().into()),
             },
             "http" => {
-                if self.allow_custom_domain && self.allow_http {
-                    Ok(())
+                if self.allow_custom_domain {
+                    return Ok(());
                 } else {
-                    return Err(UnknownUrlSchemeSnafu { scheme }.build().into());
+                    return Err(UnknownUrlSchemeSnafu { scheme: "http" }.build().into());
                 }
             }
             scheme => return Err(UnknownUrlSchemeSnafu { scheme }.build().into()),
@@ -965,6 +965,10 @@ impl MicrosoftAzureBuilder {
         } else {
             let account_name = self.account_name.ok_or(Error::MissingAccount {})?;
             let account_url = if self.allow_custom_domain {
+                self.url.ok_or(Error::UnableToParseUrl {
+                    url: "".to_string(),
+                    source: url::ParseError::EmptyHost,
+                })?
             } else {
                 format!("https://{}.blob.core.windows.net", &account_name)
             };
