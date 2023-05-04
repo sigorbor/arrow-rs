@@ -396,6 +396,7 @@ pub struct MicrosoftAzureBuilder {
     authority_host: Option<String>,
     url: Option<String>,
     use_emulator: bool,
+    allow_custom_domain: bool,
     msi_endpoint: Option<String>,
     object_id: Option<String>,
     msi_resource_id: Option<String>,
@@ -505,6 +506,13 @@ pub enum AzureConfigKey {
     /// - `use_emulator`
     UseEmulator,
 
+    /// Allow custom storage domain instead of well-known storage service endpoint
+    ///
+    /// Supported keys:
+    /// - `azure_storage_allow_custom_domain`
+    /// - `allow_custom_domain`
+    AllowCustomDomain,
+
     /// Endpoint to request a imds managed identity token
     ///
     /// Supported keys:
@@ -593,6 +601,7 @@ impl FromStr for AzureConfigKey {
             | "sas_token" => Ok(Self::SasKey),
             "azure_storage_token" | "bearer_token" | "token" => Ok(Self::Token),
             "azure_storage_use_emulator" | "use_emulator" => Ok(Self::UseEmulator),
+            "azure_storage_allow_custom_domain" | "allow_custom_domain" => Ok(Self::AllowCustomDomain),
             "azure_msi_endpoint"
             | "azure_identity_endpoint"
             | "identity_endpoint"
@@ -720,6 +729,9 @@ impl MicrosoftAzureBuilder {
             AzureConfigKey::UseEmulator => {
                 self.use_emulator = str_is_truthy(&value.into())
             }
+            AzureConfigKey::AllowCustomDomain => {
+                self.allow_custom_domain = str_is_truthy(&value.into())
+            }
         };
         Ok(self)
     }
@@ -846,6 +858,16 @@ impl MicrosoftAzureBuilder {
     /// Set if the Azure emulator should be used (defaults to false)
     pub fn with_use_emulator(mut self, use_emulator: bool) -> Self {
         self.use_emulator = use_emulator;
+        self
+    }
+
+    /// Sets if a custom storage domain is allowed.
+    /// <https://learn.microsoft.com/en-us/azure/storage/blobs/storage-custom-domain-name>
+    /// If `allow_custom_domain` is :
+    /// * false (default):  Only well-known storage service endpoints are allowed
+    /// * true:  Custom domains are allowed
+    pub fn with_allow_custom_domain(mut self, allow_custom_domain: bool) -> Self {
+        self.allow_custom_domain = allow_custom_domain;
         self
     }
 
