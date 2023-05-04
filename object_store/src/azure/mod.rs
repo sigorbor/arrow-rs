@@ -562,6 +562,7 @@ impl AsRef<str> for AzureConfigKey {
             Self::SasKey => "azure_storage_sas_key",
             Self::Token => "azure_storage_token",
             Self::UseEmulator => "azure_storage_use_emulator",
+            Self::AllowCustomDomain => "azure_storage_allow_custom_domain",
             Self::MsiEndpoint => "azure_msi_endpoint",
             Self::ObjectId => "azure_object_id",
             Self::MsiResourceId => "azure_msi_resource_id",
