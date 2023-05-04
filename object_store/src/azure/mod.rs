@@ -602,7 +602,9 @@ impl FromStr for AzureConfigKey {
             | "sas_token" => Ok(Self::SasKey),
             "azure_storage_token" | "bearer_token" | "token" => Ok(Self::Token),
             "azure_storage_use_emulator" | "use_emulator" => Ok(Self::UseEmulator),
-            "azure_storage_allow_custom_domain" | "allow_custom_domain" => Ok(Self::AllowCustomDomain),
+            "azure_storage_allow_custom_domain" | "allow_custom_domain" => {
+                Ok(Self::AllowCustomDomain)
+            }
             "azure_msi_endpoint"
             | "azure_identity_endpoint"
             | "identity_endpoint"
@@ -784,6 +786,13 @@ impl MicrosoftAzureBuilder {
                 }
                 _ => return Err(UrlNotRecognisedSnafu { url }.build().into()),
             },
+            "http" => {
+                if self.allow_custom_domain && self.allow_http {
+                    Ok(())
+                } else {
+                    return Err(UnknownUrlSchemeSnafu { scheme }.build().into());
+                }
+            }
             scheme => return Err(UnknownUrlSchemeSnafu { scheme }.build().into()),
         }
         Ok(())
@@ -955,7 +964,10 @@ impl MicrosoftAzureBuilder {
             (true, url, credential, account_name)
         } else {
             let account_name = self.account_name.ok_or(Error::MissingAccount {})?;
-            let account_url = format!("https://{}.blob.core.windows.net", &account_name);
+            let account_url = if self.allow_custom_domain {
+            } else {
+                format!("https://{}.blob.core.windows.net", &account_name)
+            };
             let url = Url::parse(&account_url)
                 .context(UnableToParseUrlSnafu { url: account_url })?;
             let credential = if let Some(bearer_token) = self.bearer_token {
